@@ -1,14 +1,19 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class Cliente implements Comparable<Cliente> {
+// Quitamos "implements Comparable<Cliente>"
+public class Cliente {
     private String nombre;
     private int scoring;
+    private List<Cliente> siguiendo;
 
     public Cliente(String nombre, int scoring) {
         this.nombre = nombre;
         this.scoring = scoring;
+        this.siguiendo = new ArrayList<>();
     }
 
     public String getNombre() { return nombre; }
@@ -16,7 +21,14 @@ public class Cliente implements Comparable<Cliente> {
     public int getScoring() { return scoring; }
     public void setScoring(int scoring) { this.scoring = scoring; }
 
-    // Vital para HashMap O(1)
+    public List<Cliente> getSiguiendo() { return siguiendo; }
+
+    public void agregarSeguido(Cliente seguido) {
+        if (!siguiendo.contains(seguido)) {
+            siguiendo.add(seguido);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -32,16 +44,7 @@ public class Cliente implements Comparable<Cliente> {
 
     @Override
     public String toString() {
-        return "Cliente{nombre='" + nombre + "', scoring=" + scoring + "}";
-    }
-
-    // Vital para BST O(log n)
-    @Override
-    public int compareTo(Cliente otro) {
-        int result = Integer.compare(this.scoring, otro.scoring);
-        if (result == 0) {
-            return this.nombre.compareTo(otro.nombre); // Desempate por nombre
-        }
-        return result;
+        // Formato limpio: "Bob (Scoring: 88)"
+        return nombre + " (Scoring: " + scoring + ")";
     }
 }

@@ -9,7 +9,8 @@ public class Main {
     private static final SocialNetwork red = new SocialNetwork();
 
     public static void main(String[] args) {
-        System.out.println("=== SISTEMA TPO UADE - ITERACIÓN 1 (Con Excepciones) ===");
+        System.out.println("=== SISTEMA TPO UADE - ITERACIÓN 1 ===");
+        System.out.println("   (Estructuras: Mapas, Listas, Pilas, Colas)");
 
         // Carga automática inicial
         // Nota: JsonLoader ya maneja sus propias excepciones internamente
@@ -26,11 +27,11 @@ public class Main {
     private static void mostrarMenu() {
         System.out.println("\n--- MENÚ PRINCIPAL ---");
         System.out.println("1. Agregar Cliente (Manual)");
-        System.out.println("2. Buscar Cliente por Nombre");
-        System.out.println("3. Buscar Cliente por Scoring");
+        System.out.println("2. Buscar Cliente por Nombre (O(1))");
+        System.out.println("3. Buscar Cliente por Scoring (Índice Map)");
         System.out.println("4. Enviar Solicitud de Seguimiento");
-        System.out.println("5. Procesar Cola de Solicitudes");
-        System.out.println("6. Deshacer Última Acción");
+        System.out.println("5. Procesar Cola de Solicitudes (FIFO)");
+        System.out.println("6. Deshacer Última Acción (Stack)");
         System.out.println("0. Salir");
         System.out.print(">> Seleccione: ");
     }
@@ -44,7 +45,7 @@ public class Main {
     }
 
     private static void ejecutarOpcion(int op) {
-        // Bloque Try-Catch Global para el manejo de opciones
+        // Bloque Try-Catch Global para el manejo de excepciones de negocio y sistema
         try {
             switch (op) {
                 case 1:
@@ -62,7 +63,7 @@ public class Main {
                     String bNombre = scanner.nextLine();
                     Cliente c1 = red.buscarPorNombre(bNombre);
                     if (c1 != null) {
-                        System.out.println("✅ Encontrado: " + c1);
+                        System.out.println("✅ Encontrado (Map Nombre): " + c1);
                     } else {
                         System.out.println("❌ Cliente no encontrado.");
                     }
@@ -71,14 +72,17 @@ public class Main {
                 case 3:
                     System.out.print("Scoring a buscar: ");
                     int s = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Nombre (para desempate): ");
-                    String n = scanner.nextLine();
 
-                    Cliente c2 = red.buscarPorScoring(s, n);
-                    if (c2 != null) {
-                        System.out.println("✅ Encontrado en BST: " + c2);
+                    // Ahora recibimos una LISTA
+                    java.util.List<Cliente> encontrados = red.buscarPorScoring(s);
+
+                    if (!encontrados.isEmpty()) {
+                        System.out.println("✅ Clientes con scoring " + s + ":");
+                        for (Cliente c : encontrados) {
+                            System.out.println("   -> " + c);
+                        }
                     } else {
-                        System.out.println("❌ No encontrado con ese criterio exacto.");
+                        System.out.println("❌ Nadie tiene ese scoring exacto.");
                     }
                     break;
 
@@ -123,7 +127,7 @@ public class Main {
         } catch (Exception e) {
             // Captura cualquier otro error inesperado (NullPointer, etc.)
             System.out.println("☠️ Error Inesperado del Sistema: " + e.getMessage());
-            e.printStackTrace(); // Útil para depurar, quitar en producción final
+            e.printStackTrace(); // Útil para depurar si algo explota
         }
     }
 }

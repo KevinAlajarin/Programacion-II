@@ -6,41 +6,43 @@ import exceptions.OperacionInvalidaException;
 import models.Accion;
 import models.Cliente;
 import models.Solicitud;
-import structures.ScoringBST;
 
 import java.util.*;
 
 public class SocialNetwork {
     private Map<String, Cliente> clienteMap;
-    private ScoringBST scoringIndex;
+    // Mapea Puntaje -> Lista de personas con ese puntaje.
+    private Map<Integer, List<Cliente>> scoringMap;
+
     private ActionHistory history;
     private Queue<Solicitud> requestQueue;
 
     public SocialNetwork() {
         this.clienteMap = new HashMap<>();
-        this.scoringIndex = new ScoringBST();
+        this.scoringMap = new HashMap<>();
         this.history = new ActionHistory();
         this.requestQueue = new LinkedList<>();
     }
 
-    // --- REQ 1: Gestión de Clientes ---
+    // --- REQ 1: Gestion de Clientes ---
 
-    // CAMBIO: Ahora declara que puede lanzar una excepción checked
     public void agregarCliente(String nombre, int scoring) throws ClienteYaExisteException {
         if (clienteMap.containsKey(nombre)) {
             throw new ClienteYaExisteException(nombre);
         }
 
-        // Validación extra: Scoring no negativo (Defensive Programming)
         if (scoring < 0 || scoring > 100) {
-            // Usamos IllegalArgumentException porque es un error de argumento, no de negocio
             throw new IllegalArgumentException("El scoring debe estar entre 0 y 100.");
         }
 
         Cliente nuevo = new Cliente(nombre, scoring);
 
+        // 1. Agregar al indice por Nombre
         clienteMap.put(nombre, nuevo);
-        scoringIndex.insert(nuevo);
+
+        // 2. Agregar al indice por Scoring
+        scoringMap.putIfAbsent(scoring, new ArrayList<>());
+        scoringMap.get(scoring).add(nuevo);
 
         history.registrarAccion(new Accion(Accion.TipoAccion.AGREGAR_CLIENTE, nombre, null));
         System.out.println("LOG: Cliente agregado -> " + nombre);
@@ -50,21 +52,24 @@ public class SocialNetwork {
         return clienteMap.get(nombre);
     }
 
-    public Cliente buscarPorScoring(int scoring, String nombre) {
-        return scoringIndex.search(scoring, nombre);
+    /**
+     * Busca TODOS los clientes con un scoring especifico.
+     * @param scoring El puntaje a buscar.
+     * @return Una lista de clientes (vacia si nadie tiene ese puntaje).
+     */
+    public List<Cliente> buscarPorScoring(int scoring) {
+        return scoringMap.getOrDefault(scoring, new ArrayList<>());
     }
 
-    // --- REQ 3: Gestión de Solicitudes ---
+    // --- REQ 3: Gestion de Solicitudes ---
 
     public void enviarSolicitud(String solicitante, String solicitado)
             throws ClienteNoEncontradoException, OperacionInvalidaException {
 
-        // Validación 1: No seguirse a sí mismo
         if (solicitante.equals(solicitado)) {
             throw new OperacionInvalidaException("Un usuario no puede enviarse solicitud a sí mismo.");
         }
 
-        // Validación 2: Existencia
         if (!clienteMap.containsKey(solicitante)) {
             throw new ClienteNoEncontradoException(solicitante);
         }
@@ -81,13 +86,26 @@ public class SocialNetwork {
 
     public List<String> procesarSolicitudes() {
         List<String> procesados = new ArrayList<>();
-        System.out.println("\n--- Procesando Solicitudes ---");
+        System.out.println("\n--- Procesando Solicitudes (FIFO) ---");
 
         while (!requestQueue.isEmpty()) {
             Solicitud sol = requestQueue.poll();
-            String log = sol.getSolicitante() + " -> " + sol.getSolicitado();
-            System.out.println("Procesando: " + log);
-            procesados.add(log);
+
+            Cliente origen = clienteMap.get(sol.getSolicitante());
+            Cliente destino = clienteMap.get(sol.getSolicitado());
+
+            if (origen != null && destino != null) {
+                // Validacion Iteracion 2: Máximo 2 seguidos
+                if (origen.getSiguiendo().size() >= 2) {
+                    System.out.println("⚠️ Solicitud rechazada: " + origen.getNombre() +
+                            " ya sigue al máximo de 2 personas.");
+                } else {
+                    origen.agregarSeguido(destino);
+                    String log = "✅ Aceptada: " + origen.getNombre() + " ahora sigue a " + destino.getNombre();
+                    System.out.println(log);
+                    procesados.add(log);
+                }
+            }
         }
         return procesados;
     }
@@ -103,12 +121,32 @@ public class SocialNetwork {
 
         switch (ultima.getTipo()) {
             case AGREGAR_CLIENTE:
-                clienteMap.remove(ultima.getSujeto());
-                System.out.println("LOG: Cliente eliminado por deshacer.");
+                Cliente c = clienteMap.get(ultima.getSujeto());
+                if (c != null) {
+                    // Remover del indice de scoring (Lista)
+                    List<Cliente> lista = scoringMap.get(c.getScoring());
+                    if (lista != null) {
+                        lista.remove(c);
+                        if (lista.isEmpty()) {
+                            scoringMap.remove(c.getScoring());
+                        }
+                    }
+                    // Remover del indice de nombre
+                    clienteMap.remove(ultima.getSujeto());
+                    System.out.println("LOG: Cliente eliminado por deshacer.");
+                }
                 break;
             case SEGUIR_USUARIO:
-                // En una implementación completa, aquí buscaríamos y removeríamos la solicitud de la cola si aun no se procesó
-                System.out.println("LOG: Acción de seguimiento revertida (simulado).");
+                // Logica REAL de deshacer seguir (Iteracion 2)
+                String sujeto = ultima.getSujeto();
+                String objeto = ultima.getObjeto();
+                Cliente sol = clienteMap.get(sujeto);
+                Cliente obj = clienteMap.get(objeto);
+
+                if (sol != null && obj != null) {
+                    boolean borrado = sol.getSiguiendo().remove(obj);
+                    if(borrado) System.out.println("LOG: Se dejó de seguir a " + objeto);
+                }
                 break;
         }
     }
