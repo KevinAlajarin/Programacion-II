@@ -49,4 +49,5 @@ El sistema implementa Excepciones Personalizadas para separar la lógica de nego
 - ClienteYaExisteException: Evita duplicados.
 - ClienteNoEncontradoException: Valida integridad referencial.
 - OperacionInvalidaException: Reglas de negocio (ej. auto-seguimiento).
-- Trabajo Práctico realizado para la cursada de Verano 2026.
+  
+Trabajo Práctico realizado para la cursada de Verano 2026.
