@@ -20,7 +20,7 @@
     },
     {
       "nombre": "David",
-      "scoring": 92,
+      "scoring": 50,
       "siguiendo": ["Alice"],
       "conexiones": ["Bob", "Alice"]
     },

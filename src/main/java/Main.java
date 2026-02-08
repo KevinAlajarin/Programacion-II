@@ -9,7 +9,7 @@ public class Main {
     private static final SocialNetwork red = new SocialNetwork();
 
     public static void main(String[] args) {
-        System.out.println("=== SISTEMA TPO UADE - ITERACIÓN 1 ===");
+        System.out.println("=== TPO UADE - ITERACIÓN 1 ===");
         System.out.println("   (Estructuras: Mapas, Listas, Pilas, Colas)");
 
         // Carga automática inicial
@@ -26,12 +26,14 @@ public class Main {
 
     private static void mostrarMenu() {
         System.out.println("\n--- MENÚ PRINCIPAL ---");
-        System.out.println("1. Agregar Cliente (Manual)");
+        System.out.println("1. Agregar Cliente Manual");
         System.out.println("2. Buscar Cliente por Nombre (O(1))");
         System.out.println("3. Buscar Cliente por Scoring (Índice Map)");
         System.out.println("4. Enviar Solicitud de Seguimiento");
         System.out.println("5. Procesar Cola de Solicitudes (FIFO)");
         System.out.println("6. Deshacer Última Acción (Stack)");
+        System.out.println("7. Mostrar Todos los Clientes");
+        System.out.println("8. Eliminar Cliente del Sistema");
         System.out.println("0. Salir");
         System.out.print(">> Seleccione: ");
     }
@@ -62,8 +64,10 @@ public class Main {
                     System.out.print("Nombre a buscar: ");
                     String bNombre = scanner.nextLine();
                     Cliente c1 = red.buscarPorNombre(bNombre);
+
                     if (c1 != null) {
-                        System.out.println("✅ Encontrado (Map Nombre): " + c1);
+                        // Formato limpio solicitado
+                        System.out.println("✅ Encontrado: " + c1.getNombre() + " Scoring: " + c1.getScoring());
                     } else {
                         System.out.println("❌ Cliente no encontrado.");
                     }
@@ -73,7 +77,7 @@ public class Main {
                     System.out.print("Scoring a buscar: ");
                     int s = Integer.parseInt(scanner.nextLine());
 
-                    // Ahora recibimos una LISTA
+                    // Recibimos una LISTA (Lógica corregida para Map<Integer, List>)
                     java.util.List<Cliente> encontrados = red.buscarPorScoring(s);
 
                     if (!encontrados.isEmpty()) {
@@ -102,6 +106,27 @@ public class Main {
 
                 case 6:
                     red.deshacerUltimaAccion();
+                    break;
+
+                case 7:
+                    // NUEVO: Reporte general
+                    red.mostrarEstadoGeneral();
+                    break;
+
+                case 8:
+                    // NUEVO: Eliminación total
+                    System.out.print("Nombre del cliente a eliminar: ");
+                    String nombreBorrar = scanner.nextLine();
+
+                    // Confirmación de seguridad
+                    System.out.print("¿Estás seguro? Se borrará todo rastro (S/N): ");
+                    String confirma = scanner.nextLine();
+
+                    if (confirma.equalsIgnoreCase("S")) {
+                        red.eliminarClienteTotalmente(nombreBorrar);
+                    } else {
+                        System.out.println("Operación cancelada.");
+                    }
                     break;
 
                 case 0:
