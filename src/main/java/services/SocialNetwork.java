@@ -295,4 +295,8 @@ public class SocialNetwork {
             this.quienesLoSeguian = new ArrayList<>(seguidores);
         }
     }
+
+    public void verHistorial() {
+        history.mostrarHistorialCompleto();
+    }
 }

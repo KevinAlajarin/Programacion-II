@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("=== TPO UADE - ITERACIÓN 1 ===");
-        System.out.println("   (Estructuras: Mapas, Listas, Pilas, Colas)");
+        System.out.println("   (Estructuras: Diccionarios, Listas, Pilas, Colas)");
 
         // Carga automática inicial
         // Nota: JsonLoader ya maneja sus propias excepciones internamente
@@ -27,13 +27,14 @@ public class Main {
     private static void mostrarMenu() {
         System.out.println("\n--- MENÚ PRINCIPAL ---");
         System.out.println("1. Agregar Cliente Manual");
-        System.out.println("2. Buscar Cliente por Nombre (O(1))");
-        System.out.println("3. Buscar Cliente por Scoring (Índice Map)");
+        System.out.println("2. Buscar Cliente por Nombre");
+        System.out.println("3. Buscar Cliente por Scoring");
         System.out.println("4. Enviar Solicitud de Seguimiento");
-        System.out.println("5. Procesar Cola de Solicitudes (FIFO)");
-        System.out.println("6. Deshacer Última Acción (Stack)");
+        System.out.println("5. Procesar Cola de Solicitudes");
+        System.out.println("6. Deshacer Última Acción");
         System.out.println("7. Mostrar Todos los Clientes");
         System.out.println("8. Eliminar Cliente del Sistema");
+        System.out.println("9. Ver Historial de Acciones");
         System.out.println("0. Salir");
         System.out.print(">> Seleccione: ");
     }
@@ -127,6 +128,10 @@ public class Main {
                     } else {
                         System.out.println("Operación cancelada.");
                     }
+                    break;
+
+                case 9:
+                    red.verHistorial();
                     break;
 
                 case 0:

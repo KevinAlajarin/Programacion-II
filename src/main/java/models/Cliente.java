@@ -48,3 +48,5 @@
             return nombre + " (Scoring: " + scoring + ")";
         }
     }
+
+    // agregar metodo de seguir a
