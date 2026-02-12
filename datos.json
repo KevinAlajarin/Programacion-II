@@ -1,34 +1,42 @@
-{
-  "clientes": [
-    {
-      "nombre": "Alice",
-      "scoring": 95,
-      "siguiendo": ["Bob", "Charlie"],
-      "conexiones": ["Bob", "Charlie", "David"]
-    },
-    {
-      "nombre": "Bob",
-      "scoring": 88,
-      "siguiendo": ["David"],
-      "conexiones": ["Alice", "David"]
-    },
-    {
-      "nombre": "Charlie",
-      "scoring": 80,
-      "siguiendo": [],
-      "conexiones": ["Alice", "Eve"]
-    },
-    {
-      "nombre": "David",
-      "scoring": 50,
-      "siguiendo": ["Alice"],
-      "conexiones": ["Bob", "Alice"]
-    },
-    {
-      "nombre": "Eve",
-      "scoring": 85,
-      "siguiendo": [],
-      "conexiones": ["Charlie"]
-    }
-  ]
-}
+[
+  {
+    "nombre": "Kevin",
+    "scoring": 95,
+    "siguiendo": ["Ana", "Pedro"]
+  },
+  {
+    "nombre": "Ana",
+    "scoring": 88,
+    "siguiendo": ["Beto"]
+  },
+  {
+    "nombre": "Pedro",
+    "scoring": 60,
+    "siguiendo": []
+  },
+  {
+    "nombre": "Beto",
+    "scoring": 75,
+    "siguiendo": ["Carla", "Luis"]
+  },
+  {
+    "nombre": "Luis",
+    "scoring": 50,
+    "siguiendo": []
+  },
+  {
+    "nombre": "Carla",
+    "scoring": 90,
+    "siguiendo": ["Daniel", "Elena"]
+  },
+  {
+    "nombre": "Daniel",
+    "scoring": 99,
+    "siguiendo": []
+  },
+  {
+    "nombre": "Elena",
+    "scoring": 92,
+    "siguiendo": []
+  }
+]

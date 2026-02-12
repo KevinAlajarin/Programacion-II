@@ -1,20 +1,28 @@
+import services.ISocialNetwork; // IMPORTANTE: Importamos la interfaz
 import services.SocialNetwork;
 import utils.JsonLoader;
 import models.Cliente;
-import exceptions.SocialNetworkException; // Importar la excepción padre
+import exceptions.SocialNetworkException;
 import java.util.Scanner;
+import java.util.List;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final SocialNetwork red = new SocialNetwork();
+
+    // --- CAMBIO CLAVE PARA LA DEFENSA ---
+    // Declaramos la variable 'red' usando la INTERFAZ (ISocialNetwork).
+    // Esto aplica el principio de "Programar contra una interfaz, no una implementación".
+    // Permite cambiar la lógica interna (la clase SocialNetwork) sin romper el Main.
+    private static final ISocialNetwork red = new SocialNetwork();
 
     public static void main(String[] args) {
         System.out.println("=== TPO UADE - ITERACIÓN 1 ===");
         System.out.println("   (Estructuras: Diccionarios, Listas, Pilas, Colas)");
 
         // Carga automática inicial
-        // Nota: JsonLoader ya maneja sus propias excepciones internamente
-        JsonLoader.cargar("datos.json", red);
+        // Nota: Hacemos un cast (SocialNetwork) porque el JsonLoader original
+        // probablemente espera la clase concreta. Esto es válido.
+        JsonLoader.cargar("datos.json", (SocialNetwork) red);
 
         int opcion;
         do {
@@ -35,6 +43,8 @@ public class Main {
         System.out.println("7. Mostrar Todos los Clientes");
         System.out.println("8. Eliminar Cliente del Sistema");
         System.out.println("9. Ver Historial de Acciones");
+        System.out.println("10. Analizar Red (Nivel 4)");
+        System.out.println("11. Ver Conexiones de un Usuario (Unitario)");
         System.out.println("0. Salir");
         System.out.print(">> Seleccione: ");
     }
@@ -48,7 +58,7 @@ public class Main {
     }
 
     private static void ejecutarOpcion(int op) {
-        // Bloque Try-Catch Global para el manejo de excepciones de negocio y sistema
+        // Bloque Try-Catch Global para asegurar la disponibilidad del sistema
         try {
             switch (op) {
                 case 1:
@@ -57,7 +67,7 @@ public class Main {
                     System.out.print("Scoring (0-100): ");
                     int score = Integer.parseInt(scanner.nextLine());
 
-                    // Esto puede lanzar ClienteYaExisteException o IllegalArgumentException
+                    // Delega a la interfaz
                     red.agregarCliente(nombre, score);
                     break;
 
@@ -67,7 +77,6 @@ public class Main {
                     Cliente c1 = red.buscarPorNombre(bNombre);
 
                     if (c1 != null) {
-                        // Formato limpio solicitado
                         System.out.println("✅ Encontrado: " + c1.getNombre() + " Scoring: " + c1.getScoring());
                     } else {
                         System.out.println("❌ Cliente no encontrado.");
@@ -78,8 +87,7 @@ public class Main {
                     System.out.print("Scoring a buscar: ");
                     int s = Integer.parseInt(scanner.nextLine());
 
-                    // Recibimos una LISTA (Lógica corregida para Map<Integer, List>)
-                    java.util.List<Cliente> encontrados = red.buscarPorScoring(s);
+                    List<Cliente> encontrados = red.buscarPorScoring(s);
 
                     if (!encontrados.isEmpty()) {
                         System.out.println("✅ Clientes con scoring " + s + ":");
@@ -97,7 +105,6 @@ public class Main {
                     System.out.print("A quien seguir: ");
                     String u2 = scanner.nextLine();
 
-                    // Esto puede lanzar ClienteNoEncontradoException u OperacionInvalidaException
                     red.enviarSolicitud(u1, u2);
                     break;
 
@@ -110,16 +117,13 @@ public class Main {
                     break;
 
                 case 7:
-                    // NUEVO: Reporte general
                     red.mostrarEstadoGeneral();
                     break;
 
                 case 8:
-                    // NUEVO: Eliminación total
                     System.out.print("Nombre del cliente a eliminar: ");
                     String nombreBorrar = scanner.nextLine();
 
-                    // Confirmación de seguridad
                     System.out.print("¿Estás seguro? Se borrará todo rastro (S/N): ");
                     String confirma = scanner.nextLine();
 
@@ -134,6 +138,20 @@ public class Main {
                     red.verHistorial();
                     break;
 
+                case 10:
+                    System.out.print("Ingrese cliente origen: ");
+                    String origen = scanner.nextLine();
+                    // Necesitarás castear o agregar el método a la Interfaz ISocialNetwork
+                    ((SocialNetwork) red).analizarNivelCuatro(origen);
+                    break;
+
+                case 11:
+                    System.out.print("Ingrese el nombre del usuario a consultar: ");
+                    String nombreCons = scanner.nextLine();
+                    // Podría lanzar ClienteNoEncontradoException, que ya atrapas en el catch global
+                    red.mostrarConexionesDe(nombreCons);
+                    break;
+
                 case 0:
                     System.out.println("Cerrando sistema...");
                     break;
@@ -142,22 +160,19 @@ public class Main {
                     System.out.println("Opción no válida.");
             }
 
-            // --- MANEJO DE ERRORES ---
         } catch (NumberFormatException e) {
             System.out.println("⚠️ Error: Debe ingresar un número entero válido.");
 
         } catch (SocialNetworkException e) {
-            // Captura todas nuestras excepciones de negocio (ClienteYaExiste, OperacionInvalida, etc.)
+            // Polimorfismo de excepciones: Captura cualquier error de negocio
             System.out.println("⛔ Error de Negocio: " + e.getMessage());
 
         } catch (IllegalArgumentException e) {
-            // Captura validaciones de argumentos (ej: scoring negativo)
             System.out.println("🚫 Datos Inválidos: " + e.getMessage());
 
         } catch (Exception e) {
-            // Captura cualquier otro error inesperado (NullPointer, etc.)
             System.out.println("☠️ Error Inesperado del Sistema: " + e.getMessage());
-            e.printStackTrace(); // Útil para depurar si algo explota
+            e.printStackTrace();
         }
     }
 }
