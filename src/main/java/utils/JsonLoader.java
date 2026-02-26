@@ -39,23 +39,17 @@ public class JsonLoader {
             }
             System.out.println("✅ Fase 1 completada: Clientes cargados.");
 
-            // --- FASE 2: CARGAR ARISTAS (Crear las relaciones) ---
+            // --- FASE 2: CARGAR ARISTAS (Crear las relaciones y amistades) ---
             for (ClienteDTO dto : dtos) {
-                // Si el JSON dice que este cliente sigue a alguien...
+
+                // A. Cargar Relaciones Dirigidas (Seguidores - Iteración 2)
                 if (dto.siguiendo != null && !dto.siguiendo.isEmpty()) {
-
-                    // Recuperamos al cliente real (el Objeto) de la memoria
                     Cliente origen = red.buscarPorNombre(dto.nombre);
-
                     if (origen != null) {
                         for (String nombreDestino : dto.siguiendo) {
-                            // Recuperamos al amigo real
                             Cliente destino = red.buscarPorNombre(nombreDestino);
-
                             if (destino != null) {
                                 try {
-                                    // Establecemos la relación directa
-                                    // Nota: Usamos agregarSeguido directo para evitar la cola de solicitudes al iniciar
                                     origen.agregarSeguido(destino);
                                 } catch (IllegalStateException e) {
                                     System.out.println("⚠️ " + e.getMessage() + " (en carga de " + dto.nombre + ")");
@@ -66,8 +60,20 @@ public class JsonLoader {
                         }
                     }
                 }
+
+                // B. Cargar Relaciones Generales (Amistades - Iteración 3)
+                if (dto.amigos != null && !dto.amigos.isEmpty()) {
+                    for (String nombreAmigo : dto.amigos) {
+                        try {
+                            // Usamos el método de la red que garantiza la bidireccionalidad
+                            red.crearAmistad(dto.nombre, nombreAmigo);
+                        } catch (Exception e) {
+                            System.out.println("⚠️ Error al crear amistad entre " + dto.nombre + " y " + nombreAmigo + ": " + e.getMessage());
+                        }
+                    }
+                }
             }
-            System.out.println("✅ Fase 2 completada: Relaciones establecidas.");
+            System.out.println("✅ Fase 2 completada: Relaciones y amistades establecidas.");
             System.out.println("-----------------------------");
 
         } catch (IOException e) {
@@ -81,6 +87,7 @@ public class JsonLoader {
     private static class ClienteDTO {
         String nombre;
         int scoring;
-        List<String> siguiendo; // Leemos esto como lista de Strings simple
+        List<String> siguiendo; // Iteración 2 (Dirigido)
+        List<String> amigos;    // Iteración 3 (No Dirigido)
     }
 }

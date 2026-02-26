@@ -1,42 +1,44 @@
 [
   {
     "nombre": "Kevin",
+    "scoring": 100,
+    "siguiendo": ["Alice", "Bob"],
+    "amigos": ["Alice", "Bob"]
+  },
+  {
+    "nombre": "Alice",
     "scoring": 95,
-    "siguiendo": ["Ana", "Pedro"]
+    "siguiendo": ["Charlie"],
+    "amigos": ["Kevin", "Charlie"]
   },
   {
-    "nombre": "Ana",
-    "scoring": 88,
-    "siguiendo": ["Beto"]
-  },
-  {
-    "nombre": "Pedro",
-    "scoring": 60,
-    "siguiendo": []
-  },
-  {
-    "nombre": "Beto",
-    "scoring": 75,
-    "siguiendo": ["Carla", "Luis"]
-  },
-  {
-    "nombre": "Luis",
-    "scoring": 50,
-    "siguiendo": []
-  },
-  {
-    "nombre": "Carla",
+    "nombre": "Bob",
     "scoring": 90,
-    "siguiendo": ["Daniel", "Elena"]
+    "siguiendo": ["Diana"],
+    "amigos": ["Kevin", "Diana"]
   },
   {
-    "nombre": "Daniel",
-    "scoring": 99,
-    "siguiendo": []
+    "nombre": "Charlie",
+    "scoring": 85,
+    "siguiendo": ["Eve"],
+    "amigos": ["Alice", "Eve"]
   },
   {
-    "nombre": "Elena",
-    "scoring": 92,
-    "siguiendo": []
+    "nombre": "Diana",
+    "scoring": 80,
+    "siguiendo": [],
+    "amigos": ["Bob"]
+  },
+  {
+    "nombre": "Eve",
+    "scoring": 75,
+    "siguiendo": ["Frank"],
+    "amigos": ["Charlie", "Frank"]
+  },
+  {
+    "nombre": "Frank",
+    "scoring": 70,
+    "siguiendo": [],
+    "amigos": ["Eve"]
   }
 ]

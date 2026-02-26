@@ -43,26 +43,20 @@ public class SocialNetworkTest {
 
     @Test
     public void testBuscarPorScoring_AVLTreeLogic() throws ClienteYaExisteException {
-        // Arrange
         red.agregarCliente("Alto", 80);
-        red.agregarCliente("OtroAlto", 80); // Prueba de colision en nodo del árbol
+        red.agregarCliente("OtroAlto", 80);
         red.agregarCliente("Bajo", 20);
 
-        // Act & Assert
-
-        // 1. Busqueda exitosa (Scoring 80) - Debe retornar lista con 2 elementos
         List<Cliente> resultados80 = red.buscarPorScoring(80);
         assertNotNull(resultados80);
         assertEquals(2, resultados80.size(), "Deberia haber 2 clientes con scoring 80");
 
-        // Verificamos que los clientes correctos estén en la lista
         boolean estaAlto = resultados80.stream().anyMatch(c -> c.getNombre().equals("Alto"));
         boolean estaOtroAlto = resultados80.stream().anyMatch(c -> c.getNombre().equals("OtroAlto"));
 
         assertTrue(estaAlto, "La lista debe contener a Alto");
         assertTrue(estaOtroAlto, "La lista debe contener a OtroAlto");
 
-        // 2. Busqueda fallida (Scoring no existe)
         List<Cliente> resultados99 = red.buscarPorScoring(99);
         assertNotNull(resultados99);
         assertTrue(resultados99.isEmpty(), "Si el scoring no existe, debe retornar lista vacia");
@@ -85,40 +79,31 @@ public class SocialNetworkTest {
 
     @Test
     public void testSolicitudesFIFO_Buzones() throws Exception {
-        // En Iteración 2, probamos que lleguen al buzón de destino
         red.agregarCliente("A", 10);
         red.agregarCliente("B", 10);
         red.agregarCliente("C", 10);
 
-        // A quiere seguir a B (Buzón de B)
         red.enviarSolicitud("A", "B");
-        // C quiere seguir a B (Buzón de B)
         red.enviarSolicitud("C", "B");
 
         List<String> resultados = red.procesarSolicitudes();
 
         assertEquals(2, resultados.size());
-        // Verificamos que se procesaron
         assertTrue(resultados.get(0).contains("A") || resultados.get(1).contains("A"));
     }
 
     @Test
     public void testDeshacer_EliminaClienteDelMapaYArbol() throws Exception {
-        // Arrange
         String nombre = "Error";
         red.agregarCliente(nombre, 10);
 
-        // Verificar antes
         assertNotNull(red.buscarPorNombre(nombre));
         assertFalse(red.buscarPorScoring(10).isEmpty());
 
-        // Act
         red.deshacerUltimaAccion();
 
-        // Assert
         assertNull(red.buscarPorNombre(nombre), "Debe eliminarse del Map de Nombres");
         assertTrue(red.buscarPorScoring(10).isEmpty(), "Debe eliminarse del Árbol AVL (Lista vacia)");
-
         assertDoesNotThrow(() -> red.deshacerUltimaAccion());
     }
 
@@ -128,16 +113,14 @@ public class SocialNetworkTest {
 
     @Test
     public void testRestriccionMaxDosAmigos_Unitario() {
-        // Prueba unitaria directa sobre la clase Cliente para validar la regla de negocio
         Cliente c = new Cliente("Kevin", 100);
         Cliente a1 = new Cliente("A1", 50);
         Cliente a2 = new Cliente("A2", 50);
         Cliente a3 = new Cliente("A3", 50);
 
-        c.agregarSeguido(a1); // 1 amigo
-        c.agregarSeguido(a2); // 2 amigos (Max)
+        c.agregarSeguido(a1);
+        c.agregarSeguido(a2);
 
-        // El tercer intento debe lanzar excepción IllegalStateException
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             c.agregarSeguido(a3);
         });
@@ -146,51 +129,108 @@ public class SocialNetworkTest {
     }
 
     @Test
-    public void testNivelCuatro_BFS() throws SocialNetworkException {
-        // Setup de la Cadena: Alice -> Bob -> Charlie -> David -> Eve
-        // Eve es el nivel 4 (Tataranieto) de Alice.
-
+    public void testNivel_BFS_Dinamico() throws SocialNetworkException {
         red.agregarCliente("Alice", 100);
         red.agregarCliente("Bob", 100);
         red.agregarCliente("Charlie", 100);
         red.agregarCliente("David", 100);
         red.agregarCliente("Eve", 100);
 
-        // Creamos las relaciones
         red.enviarSolicitud("Alice", "Bob");
         red.enviarSolicitud("Bob", "Charlie");
         red.enviarSolicitud("Charlie", "David");
         red.enviarSolicitud("David", "Eve");
-
-        // Procesamos todas las colas para consolidar amistades
         red.procesarSolicitudes();
 
-        // --- CAPTURA DE CONSOLA ---
-        // Iniciamos la captura DESPUÉS de procesar solicitudes para no capturar los logs de "Aceptada..."
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        // Ejecutar BFS desde Alice
+        // ACTUALIZADO: Llamamos al método dinámico, pidiendo el nivel 4
         if (red instanceof SocialNetwork) {
-            ((SocialNetwork) red).analizarNivelCuatro("Alice");
+            ((SocialNetwork) red).analizarNivel("Alice", 4);
         }
 
-        // Recuperar lo que se imprimió
         String salida = outContent.toString();
-
-        // Restaurar salida normal para seguir viendo cosas en consola
         System.setOut(System.out);
 
-        // --- VALIDACIONES ---
-
-        // 1. Debe encontrar a Eve (Nivel 4)
         assertTrue(salida.contains("Eve"), "El reporte debería incluir a 'Eve' (Nivel 4)");
-
-        // 2. NO debe encontrar a Charlie (Nivel 2)
-        // Ahora usamos "Charlie" que no se confunde con la palabra "Clientes"
         assertFalse(salida.contains("Charlie"), "El reporte NO debería incluir a 'Charlie' (Nivel 2)");
-
-        // 3. Verificación extra
         assertFalse(salida.contains("No hay nadie"), "Debería encontrar resultados");
+    }
+
+    // ==========================================
+    // --- ITERACION 3: GRAFOS Y AMISTADES    ---
+    // ==========================================
+
+    @Test
+    public void testCrearAmistadBidireccional() throws Exception {
+        red.agregarCliente("A", 50);
+        red.agregarCliente("B", 50);
+
+        red.crearAmistad("A", "B");
+
+        Cliente clienteA = red.buscarPorNombre("A");
+        Cliente clienteB = red.buscarPorNombre("B");
+
+        // Verificamos que se agregaron mutuamente
+        assertTrue(clienteA.getAmigos().contains(clienteB), "A debe tener a B como amigo");
+        assertTrue(clienteB.getAmigos().contains(clienteA), "B debe tener a A como amigo");
+
+        // Verificamos que la estructura HashSet impidió duplicados si intentamos de nuevo
+        red.crearAmistad("B", "A");
+        assertEquals(1, clienteA.getAmigos().size(), "El tamaño debe seguir siendo 1 (sin duplicados)");
+    }
+
+    @Test
+    public void testCrearAmistadAutoBucle() throws Exception {
+        red.agregarCliente("Solo", 50);
+        assertThrows(IllegalArgumentException.class, () -> {
+            red.crearAmistad("Solo", "Solo");
+        }, "No debería permitir ser amigo de uno mismo");
+    }
+
+    @Test
+    public void testCalcularDistancia_BFS_Caminos() throws Exception {
+        // Setup Grafo: A - B - C - D
+        //              |
+        //              E
+        red.agregarCliente("A", 10);
+        red.agregarCliente("B", 10);
+        red.agregarCliente("C", 10);
+        red.agregarCliente("D", 10);
+        red.agregarCliente("E", 10);
+
+        red.crearAmistad("A", "B");
+        red.crearAmistad("B", "C");
+        red.crearAmistad("C", "D");
+        red.crearAmistad("A", "E");
+
+        // 1. Mismo nodo = 0
+        assertEquals(0, red.calcularDistancia("A", "A"));
+
+        // 2. Distancia Directa = 1
+        assertEquals(1, red.calcularDistancia("A", "B"));
+        assertEquals(1, red.calcularDistancia("A", "E"));
+
+        // 3. Distancia Larga = 3
+        assertEquals(3, red.calcularDistancia("A", "D"), "Debe tomar 3 saltos llegar a D");
+
+        // 4. Camino inverso = 2 (Como es no dirigido, C hacia A debe funcionar igual)
+        assertEquals(2, red.calcularDistancia("C", "A"));
+    }
+
+    @Test
+    public void testCalcularDistancia_SinConexion() throws Exception {
+        // Grafo dividido en dos islas: (A - B) y (C - D)
+        red.agregarCliente("A", 10);
+        red.agregarCliente("B", 10);
+        red.agregarCliente("C", 10);
+        red.agregarCliente("D", 10);
+
+        red.crearAmistad("A", "B");
+        red.crearAmistad("C", "D");
+
+        int saltos = red.calcularDistancia("A", "D");
+        assertEquals(-1, saltos, "Si no hay conexión, debe retornar -1");
     }
 }

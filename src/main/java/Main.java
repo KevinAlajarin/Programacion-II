@@ -1,10 +1,11 @@
-import services.ISocialNetwork; // IMPORTANTE: Importamos la interfaz
+import services.ISocialNetwork;
 import services.SocialNetwork;
 import utils.JsonLoader;
 import models.Cliente;
 import exceptions.SocialNetworkException;
 import java.util.Scanner;
 import java.util.List;
+import exceptions.ClienteNoEncontradoException;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
@@ -16,8 +17,8 @@ public class Main {
     private static final ISocialNetwork red = new SocialNetwork();
 
     public static void main(String[] args) {
-        System.out.println("=== TPO UADE - ITERACIÓN 1 ===");
-        System.out.println("   (Estructuras: Diccionarios, Listas, Pilas, Colas)");
+        System.out.println("=== TPO UADE - RED SOCIAL (ITERACIÓN 3) ===");
+        System.out.println("   (Estructuras: AVL, Grafos Dirigidos y No Dirigidos)");
 
         // Carga automática inicial
         // Nota: Hacemos un cast (SocialNetwork) porque el JsonLoader original
@@ -43,8 +44,10 @@ public class Main {
         System.out.println("7. Mostrar Todos los Clientes");
         System.out.println("8. Eliminar Cliente del Sistema");
         System.out.println("9. Ver Historial de Acciones");
-        System.out.println("10. Analizar Red (Nivel 4)");
-        System.out.println("11. Ver Conexiones de un Usuario (Unitario)");
+        System.out.println("10. Analizar Red");
+        System.out.println("11. Ver Conexiones de un Usuario");
+        System.out.println("12. Crear Amistad Bidireccional");
+        System.out.println("13. Calcular Distancia entre Amigos (BFS)");
         System.out.println("0. Salir");
         System.out.print(">> Seleccione: ");
     }
@@ -138,12 +141,16 @@ public class Main {
                     red.verHistorial();
                     break;
 
-                case 10:
+                case 10: {
                     System.out.print("Ingrese cliente origen: ");
-                    String origen = scanner.nextLine();
-                    // Necesitarás castear o agregar el método a la Interfaz ISocialNetwork
-                    ((SocialNetwork) red).analizarNivelCuatro(origen);
+                    String origenNivel = scanner.nextLine();
+                    System.out.print("Ingrese el nivel de profundidad a analizar (ej. 1, 2, 4): ");
+                    int nivel = Integer.parseInt(scanner.nextLine());
+
+                    // Ahora llamamos a la interfaz limpia, sin casteo
+                    red.analizarNivel(origenNivel, nivel);
                     break;
+                }
 
                 case 11:
                     System.out.print("Ingrese el nombre del usuario a consultar: ");
@@ -151,6 +158,42 @@ public class Main {
                     // Podría lanzar ClienteNoEncontradoException, que ya atrapas en el catch global
                     red.mostrarConexionesDe(nombreCons);
                     break;
+
+                case 12: {
+                    System.out.print("Ingrese el nombre del primer cliente: ");
+                    String amigo1 = scanner.nextLine();
+                    System.out.print("Ingrese el nombre del segundo cliente: ");
+                    String amigo2 = scanner.nextLine();
+
+                    try {
+                        red.crearAmistad(amigo1, amigo2);
+                    } catch (ClienteNoEncontradoException | IllegalArgumentException e) {
+                        System.out.println("⚠️ Error: " + e.getMessage());
+                    }
+                    break;
+                }
+
+                case 13: {
+                    System.out.print("Ingrese el nombre del cliente origen: ");
+                    String origenDist = scanner.nextLine();
+                    System.out.print("Ingrese el nombre del cliente destino: ");
+                    String destinoDist = scanner.nextLine();
+
+                    try {
+                        int saltos = red.calcularDistancia(origenDist, destinoDist);
+
+                        if (saltos == -1) {
+                            System.out.println("❌ No hay conexión posible entre " + origenDist + " y " + destinoDist + ".");
+                        } else if (saltos == 0) {
+                            System.out.println("📍 La distancia es 0 saltos (es la misma persona).");
+                        } else {
+                            System.out.println("🛤️ La distancia entre " + origenDist + " y " + destinoDist + " es de " + saltos + " salto(s).");
+                        }
+                    } catch (ClienteNoEncontradoException e) {
+                        System.out.println("⚠️ Error: " + e.getMessage());
+                    }
+                    break;
+                }
 
                 case 0:
                     System.out.println("Cerrando sistema...");
@@ -172,7 +215,8 @@ public class Main {
 
         } catch (Exception e) {
             System.out.println("☠️ Error Inesperado del Sistema: " + e.getMessage());
-            e.printStackTrace();
+            // Nota de logging: En producción se usa un Logger, en académico se suele comentar.
+            // e.printStackTrace();
         }
     }
 }
